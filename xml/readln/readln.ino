@@ -1,6 +1,17 @@
+#include <Stepper.h>
+
+const int stepsPerRevolution = 64;  // change this to fit the number of steps per revolution
+
+Stepper stepper1(stepsPerRevolution, 10, 12, 11, 13);
+
 void setup() {
   Serial.begin(9600);
+  // set the speed at 60 rpm:
+  //stepper1= new Stepper(stepsPerRevolution, 10, 12, 11, 13);
+  stepper1.setSpeed(240);
+  
 }
+
 
 #define BUFFSIZE 100
 char buff[BUFFSIZE+1];
@@ -12,6 +23,7 @@ int wordEndPos=0;
 #define keyRETRUN		'\r'
 #define keyBACKSPACE  	127
 #define NoPin			0xFF
+int error=0;
 
 char * getWord()
 {
@@ -32,8 +44,6 @@ char * getWord()
 	return NULL;
 }
 
-
-
 uint8_t getPinID(char * pinName)
 {
 	uint8_t id=NoPin;
@@ -50,6 +60,28 @@ uint8_t getPinID(char * pinName)
 			id=id0;
 	}
 	return id;
+}
+
+int parseInt(char* txt)
+{
+	error=1;
+	if(txt==NULL)
+		return 0;
+	int sign=1;
+	if(*txt=='-') {
+		sign=-1;
+		txt++;
+	}
+	int v=0;
+	while(*txt>='0' && *txt<'9') {
+		v=10*v+(*txt-'0');
+		txt++;
+	}
+	if(*txt==0) {
+		error=0;
+		return sign*v;
+	}
+	return 0;
 }
 
 void process()
@@ -155,6 +187,37 @@ void process()
 				rst="wrong pin name";
 		}
 			
+	}
+	else if(strcmp(cmd,"stepper")==0 || strcmp(cmd,"st")==0) {
+		char * action =getWord();
+		if(action==NULL) 
+			rst="No action defined";
+		else {
+			if(strcmp(action,"move")==0 || strcmp(action,"m")==0) {
+				// move action
+				char * szSteps =getWord();
+				int steps=parseInt(szSteps);
+				if(error==0) {
+					stepper1.step(steps);
+					rst="OK";
+				}
+				else
+					rst="wrong move step value";
+			}
+			else if(strcmp(action,"speed")==0 || strcmp(action,"sp")==0) {
+				// set speed
+				char * szSpeed =getWord();
+				int speed=parseInt(szSpeed);
+				if(error==0) {
+					stepper1.setSpeed(speed);
+					rst="OK";
+				}
+				else
+					rst="Wrong speed value";
+			}
+			else
+				rst="Wrong action name";
+		}
 	}
 	
 	else {
