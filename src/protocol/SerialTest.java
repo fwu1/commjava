@@ -276,6 +276,23 @@ public class SerialTest implements SerialPortEventListener {
 					continue;
 				}
 				System.out.printf("******* resp of %d is '%s'\n",count,resp);
+
+				resp=task.sendCommand("ar a1",timeout);
+				if(resp==null){
+					System.out.printf("resp=%s\n",resp);
+					continue;
+				}
+				System.out.printf("******* position: '%s'\n",resp);
+
+				resp=task.sendCommand("st m -20",timeout);
+				if(resp==null){
+					System.out.printf("resp=%s\n",resp);
+					continue;
+				}
+				System.out.printf("******* position: '%s'\n",resp);
+				resp=task.sendCommand("dw 10 l",timeout);
+				resp=task.sendCommand("dw 11 l",timeout);
+				
 				
 				Thread.sleep(600);
 				count++;
