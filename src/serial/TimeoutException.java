@@ -1,4 +1,4 @@
-package protocol;
+package serial;
 
 public class TimeoutException extends Exception {
 

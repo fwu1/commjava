@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import serial.FailureException;
+import serial.TimeoutException;
+
 
 public class SerialTest implements SerialPortEventListener {
 	SerialPort serialPort;
