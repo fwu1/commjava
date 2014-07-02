@@ -76,12 +76,12 @@ public class Arduino extends Device {
 		return rst;
 	}
 
-	public void setup() throws TimeoutException,FailureException
+	void setup() throws TimeoutException,FailureException
 	{
 		System.out.println("TODO: override setup");
 	}
 
-	public void loop() throws TimeoutException,FailureException
+	void loop() throws TimeoutException,FailureException
 	{
 		System.out.println("TODO: override loop");
 	}
