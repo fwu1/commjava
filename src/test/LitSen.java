@@ -1,5 +1,8 @@
-package serial;
+package test;
 
+import serial.FailureException;
+import serial.Serial;
+import serial.TimeoutException;
 import simu.Arduino;
 
 public class LitSen extends Arduino {
@@ -18,13 +21,12 @@ public class LitSen extends Arduino {
 	
 	int count=0;
 	int steps=1000;
-	int step=5;
+	int step=-5;
 	
 	public void loop() throws TimeoutException,FailureException
 	{
 		
-//		sendCommand("st m "+step);
-		stepperMove(step);
+		sendCommand("st m "+step);
 	
 		digitalWrite(A5,HIGH);
 		digitalWrite(A4,LOW);
@@ -44,7 +46,7 @@ public class LitSen extends Arduino {
 		Serial.println(angle);
 		
 		try {
-			Thread.sleep(10);
+			Thread.sleep(1);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -58,7 +60,7 @@ public class LitSen extends Arduino {
 	public static void main(String[] args) {
 		LitSen device = new LitSen(9600);
 		if(device.connect("COM8")) 
-			device.go(200);
+			device.go(400);
 			
 	}
 
