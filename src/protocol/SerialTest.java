@@ -14,9 +14,13 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import serial.FailureException;
+import serial.TimeoutException;
+
 
 public class SerialTest implements SerialPortEventListener {
 	SerialPort serialPort;
+	int timeout=0;
 	
         /** The port we're normally going to use. */
 	private static final String PORT_NAMES[] = { 
@@ -200,7 +204,7 @@ public class SerialTest implements SerialPortEventListener {
 	}
 	
 	
-	public String sendCommand(String command,int timeout)
+	public String sendCommand(String command) throws TimeoutException
 	{
 		buffClear();
 		//System.out.printf("send commads '%s'\n",command);
@@ -216,13 +220,103 @@ public class SerialTest implements SerialPortEventListener {
 				//System.out.printf("line2=%s\n", line2);
 				return line2;
 			}
-			else 
-				System.out.printf("line2 timeout\n");
+			//else 
+			//	System.out.printf("line2 timeout\n");
 		}
-		else
-			System.out.printf("line1 timeout\n");
-		return null;
+		//else
+		//	System.out.printf("line1 timeout\n");
+		throw new TimeoutException();
 	}
+	
+	public void pinMode(String pin, String mode) throws TimeoutException,FailureException
+	{
+		String resp=sendCommand("pm "+pin+" o");
+		if (!resp.equals("OK"))
+			throw new FailureException();
+	}
+	
+	public int analogRead(String pin) throws TimeoutException,FailureException
+	{
+		String resp=sendCommand("ar "+pin);
+		String[] values = resp.split(" ");
+		if(values.length==2 && values[1].equals("OK")) {
+			int rst=Integer.parseInt(values[0]);
+			return rst;
+		}
+		throw new FailureException();
+	}
+	
+	
+	public int lightValue(int id) throws FailureException{
+		int SIZE=2;
+		String[] pins ={"a4","a5"};
+		String resp;
+		try {
+			for(int i=0;i<SIZE;i++) {
+				String command="dw "+pins[i]+" "+((i==id)?"h":"l");
+					//System.out.printf("command: %s\n",command);
+					resp=sendCommand(command);
+					if(!resp.equals("OK")) {
+						System.out.printf("command failed");
+						throw new FailureException();
+					}
+			}
+			return analogRead("a0");
+			
+		} catch (TimeoutException e) {
+			e.printStackTrace();
+		}
+		throw new FailureException();
+	}
+	
+	public void scan() throws InterruptedException
+	{
+		int count=0;
+		Thread.sleep(500);
+		try {
+			pinMode("a4","o");
+			pinMode("a5","o");
+			//Thread.sleep(2000);
+			while(count++<10) {
+				int pos=analogRead("a1");
+				int light1=lightValue(0);
+				int light2=lightValue(1);
+	
+				System.out.printf("%d,%d,%d,%d\n",count,pos,light1,light2);
+				Thread.sleep(1000);
+			}
+		}
+		catch (FailureException ex) {
+			System.out.printf("Timeout\n");
+		} catch (TimeoutException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	public void go() throws InterruptedException
+	{
+		byte d=0;
+		Thread.sleep(500);
+		
+		try {
+			timeout=500;
+			sendCommand("test");
+		}
+		catch (TimeoutException ex) {
+			System.out.printf("Timeout\n");
+		}
+
+		try {
+			timeout=3000;
+			scan();
+		}
+		catch (InterruptedException ex) {
+			System.out.printf("Timeout\n");
+		}
+	}
+
 	
 	public static void main(String[] args) throws Exception {
 		SerialTest task = new SerialTest();
@@ -240,6 +334,8 @@ public class SerialTest implements SerialPortEventListener {
 
 		
 		if(task.output!=null) {
+			task.go();
+			/*
 			int timeout=3000;
 			int count=0;
 			byte d=0;
@@ -297,6 +393,7 @@ public class SerialTest implements SerialPortEventListener {
 				Thread.sleep(600);
 				count++;
 			}
+			*/
 		}
 		task.close();
 		System.out.println("Ended");
